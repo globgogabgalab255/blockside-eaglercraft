@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10130f">
+    <meta name="description" content="A quick launchpad for playing Eaglercraft in your browser.">
+    <title>Blockside — Eaglercraft in your browser</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f4f1e8;
+        --muted: #a9ad9e;
+        --night: #10130f;
+        --panel: #191e18;
+        --line: rgba(241, 239, 221, .13);
+        --green: #c4f06b;
+        --green-dark: #789b3c;
+        --orange: #f3a45d;
+        --pixel: "Courier New", monospace;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        min-width: 320px;
+        margin: 0;
+        background: var(--night);
+        color: var(--ink);
+      }
+      a { color: inherit; }
+      .page {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 79% 31%, rgba(85, 108, 56, .18), transparent 34rem),
+          linear-gradient(180deg, #121710 0%, #10130f 72%);
+      }
+      .wrap { width: min(1160px, calc(100% - 48px)); margin: 0 auto; }
+      .topbar {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 82px;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+      .brand-mark {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        place-items: center;
+        background: var(--green);
+        color: #192014;
+        font: 900 17px var(--pixel);
+        box-shadow: 4px 4px 0 #39472b;
+      }
+      .nav { display: flex; align-items: center; gap: 34px; }
+      .nav a {
+        color: #c4c7bb;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color .18s ease;
+      }
+      .nav a:hover, .nav a:focus-visible { color: var(--green); }
+      .nav .nav-play {
+        padding: 11px 16px;
+        border: 1px solid rgba(196, 240, 107, .5);
+        color: var(--green);
+      }
+      .hero {
+        position: relative;
+        display: grid;
+        min-height: 585px;
+        grid-template-columns: 1.02fr .98fr;
+        align-items: center;
+        gap: 20px;
+        padding: 42px 0 61px;
+      }
+      .hero-copy { position: relative; z-index: 2; padding: 0 0 25px; }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 22px;
+        color: var(--green);
+        font: 700 11px var(--pixel);
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .eyebrow::before { width: 25px; height: 2px; background: currentColor; content: ""; }
+      h1 {
+        max-width: 620px;
+        margin: 0;
+        font: 900 clamp(52px, 7.4vw, 94px)/.91 var(--pixel);
+        letter-spacing: -.09em;
+        text-transform: uppercase;
+      }
+      h1 span { display: block; color: var(--green); }
+      .intro {
+        max-width: 450px;
+        margin: 26px 0 0;
+        color: #b9bdb0;
+        font-size: 16px;
+        line-height: 1.7;
+      }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 17px; margin-top: 31px; }
+      .button {
+        display: inline-flex;
+        min-height: 54px;
+        align-items: center;
+        justify-content: center;
+        gap: 13px;
+        padding: 0 20px;
+        background: var(--green);
+        color: #172011;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-decoration: none;
+        text-transform: uppercase;
+        box-shadow: 0 4px 0 var(--green-dark);
+        transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      }
+      .button:hover { transform: translateY(-2px); background: #d2fb81; box-shadow: 0 6px 0 var(--green-dark); }
+      .button:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--green-dark); }
+      .button:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+      .button svg { width: 16px; height: 16px; }
+      .microcopy { color: #92988a; font-size: 12px; }
+      .version-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 23px; }
+      .version-links > span { margin-right: 4px; color: #92988a; font: 10px var(--pixel); letter-spacing: .07em; }
+      .version-links a {
+        padding: 6px 9px;
+        border: 1px solid var(--line);
+        color: #c4c7bb;
+        font: 11px var(--pixel);
+        text-decoration: none;
+        transition: border-color .18s ease, color .18s ease;
+      }
+      .version-links a:hover { border-color: var(--green); color: var(--green); }
+      .hero-art {
+        position: relative;
+        height: 440px;
+        isolation: isolate;
+      }
+      .sun {
+        position: absolute;
+        top: 36px;
+        right: 64px;
+        width: 114px;
+        height: 114px;
+        background: #e8a758;
+        box-shadow: 0 0 70px rgba(232, 167, 88, .16);
+      }
+      .pixel-cloud {
+        position: absolute;
+        width: 88px;
+        height: 18px;
+        background: #89966e;
+        opacity: .28;
+      }
+      .pixel-cloud::before, .pixel-cloud::after { position: absolute; background: inherit; content: ""; }
+      .pixel-cloud::before { top: -13px; left: 20px; width: 28px; height: 14px; }
+      .pixel-cloud::after { top: -7px; right: 9px; width: 30px; height: 12px; }
+      .cloud-one { top: 83px; left: 61px; transform: scale(.72); }
+      .cloud-two { top: 148px; right: 9px; transform: scale(.55); opacity: .2; }
+      .mountain {
+        position: absolute;
+        right: 0;
+        bottom: 109px;
+        left: 0;
+        height: 220px;
+        clip-path: polygon(0 65%, 14% 40%, 24% 55%, 43% 14%, 57% 51%, 72% 22%, 100% 69%, 100% 100%, 0 100%);
+        background: #28352a;
+      }
+      .mountain-back {
+        bottom: 107px;
+        height: 176px;
+        clip-path: polygon(0 70%, 22% 34%, 39% 61%, 63% 18%, 79% 57%, 100% 29%, 100% 100%, 0 100%);
+        background: #1d2b24;
+      }
+      .ground {
+        position: absolute;
+        right: -20px;
+        bottom: 0;
+        left: -20px;
+        height: 138px;
+        border-top: 12px solid #668147;
+        background:
+          linear-gradient(90deg, transparent 0 12%, rgba(0,0,0,.12) 12% 13%, transparent 13% 42%, rgba(0,0,0,.11) 42% 43%, transparent 43% 76%, rgba(0,0,0,.1) 76% 77%, transparent 77%),
+          repeating-linear-gradient(0deg, #443d2b 0 32px, #393727 32px 64px);
+        box-shadow: 0 -13px 0 #81995b, 0 -19px 0 #405631;
+      }
+      .block {
+        position: absolute;
+        width: 66px;
+        height: 66px;
+        background: #627d42;
+        box-shadow: inset 0 0 0 6px rgba(0,0,0,.1), 8px 8px 0 rgba(0,0,0,.14);
+      }
+      .block::before {
+        position: absolute;
+        top: -18px;
+        left: 0;
+        width: 100%;
+        height: 18px;
+        background: #8ca75a;
+        clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+        content: "";
+      }
+      .block::after {
+        position: absolute;
+        top: -9px;
+        right: -16px;
+        width: 16px;
+        height: 66px;
+        background: #455c35;
+        clip-path: polygon(0 0, 100% 9px, 100% 100%, 0 100%);
+        content: "";
+      }
+      .block-grass { right: 27%; bottom: 111px; }
+      .block-stone { right: 11%; bottom: 44px; background: #62685c; transform: scale(.8); }
+      .block-stone::before { background: #858a7b; }
+      .block-stone::after { background: #4c5049; }
+      .tree {
+        position: absolute;
+        bottom: 113px;
+        left: 19%;
+        width: 23px;
+        height: 79px;
+        background: #604630;
+        box-shadow: inset -6px 0 rgba(0,0,0,.12);
+      }
+      .tree::before {
+        position: absolute;
+        top: -61px;
+        left: -29px;
+        width: 81px;
+        height: 72px;
+        background: #526e3e;
+        box-shadow: inset -8px -6px rgba(0,0,0,.12), 7px 7px 0 rgba(0,0,0,.12);
+        clip-path: polygon(25% 0, 75% 0, 75% 15%, 100% 15%, 100% 76%, 83% 76%, 83% 100%, 17% 100%, 17% 77%, 0 77%, 0 20%, 25% 20%);
+        content: "";
+      }
+      .art-label {
+        position: absolute;
+        right: 0;
+        bottom: 23px;
+        color: rgba(244, 241, 232, .5);
+        font: 10px var(--pixel);
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .stat { padding: 21px 24px 22px 0; }
+      .stat + .stat { padding-left: 24px; border-left: 1px solid var(--line); }
+      .stat strong { display: block; color: var(--ink); font-size: 13px; }
+      .stat span { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; }
+      .details {
+        display: grid;
+        grid-template-columns: .85fr 1.15fr;
+        gap: 60px;
+        padding: 83px 0 91px;
+      }
+      .section-kicker { margin: 0 0 13px; color: var(--orange); font: 700 10px var(--pixel); letter-spacing: .13em; text-transform: uppercase; }
+      h2 { margin: 0; font-size: clamp(25px, 3vw, 36px); letter-spacing: -.04em; }
+      .details-copy { margin: 14px 0 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
+      .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .feature {
+        min-height: 114px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.025);
+      }
+      .feature-icon { display: block; margin-bottom: 10px; color: var(--green); font: 700 17px var(--pixel); }
+      .feature strong { display: block; font-size: 12px; }
+      .feature span { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      footer {
+        padding: 20px 0 24px;
+        border-top: 1px solid var(--line);
+        color: #81877a;
+        font-size: 10px;
+        line-height: 1.7;
+      }
+      footer .footer-row { display: flex; justify-content: space-between; gap: 20px; }
+      footer a { color: #c4c7bb; text-decoration: none; }
+      @media (max-width: 760px) {
+        .wrap { width: min(100% - 36px, 560px); }
+        .topbar { height: 70px; }
+        .nav { gap: 15px; }
+        .nav a:not(.nav-play) { display: none; }
+        .hero { grid-template-columns: 1fr; gap: 0; padding-top: 66px; }
+        .hero-copy { padding-bottom: 0; }
+        .hero-art { height: 310px; margin-top: 8px; }
+        .sun { top: 33px; right: 19%; width: 76px; height: 76px; }
+        .mountain { bottom: 86px; height: 166px; }
+        .mountain-back { bottom: 83px; height: 136px; }
+        .ground { height: 108px; }
+        .block-grass { bottom: 91px; }
+        .block-stone { bottom: 26px; }
+        .tree { bottom: 91px; transform: scale(.78); transform-origin: bottom left; }
+        .details { grid-template-columns: 1fr; gap: 26px; padding: 58px 0 64px; }
+      }
+      @media (max-width: 440px) {
+        .wrap { width: calc(100% - 30px); }
+        .brand { font-size: 12px; }
+        h1 { font-size: clamp(47px, 14vw, 64px); }
+        .intro { font-size: 14px; }
+        .actions { align-items: flex-start; flex-direction: column; }
+        .version-links { gap: 6px; }
+        .version-links > span { flex-basis: 100%; margin-bottom: 2px; }
+        .stats { grid-template-columns: 1fr; }
+        .stat, .stat + .stat { padding: 14px 0; border-left: 0; }
+        .stat + .stat { border-top: 1px solid var(--line); }
+        .feature-grid { grid-template-columns: 1fr; }
+        footer .footer-row { flex-direction: column; gap: 5px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="wrap">
+        <header class="topbar">
+          <a class="brand" href="#" aria-label="Blockside home">
+            <span class="brand-mark" aria-hidden="true">B</span>
+            <span>Blockside</span>
+          </a>
+          <nav class="nav" aria-label="Main navigation">
+            <a href="#about">About</a>
+            <a href="#features">Features</a>
+            <a class="nav-play" href="https://eaglercraft.com/play?version=1.8.8-wasm" target="_blank" rel="noopener noreferrer">Play now ↗</a>
+          </nav>
+        </header>
+
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">A little blocky. A lot of fun.</p>
+            <h1 id="hero-title">Your world.<span>Your browser.</span></h1>
+            <p class="intro">Jump into Eaglercraft and start building, exploring, and playing with friends — right from your browser.</p>
+            <div class="actions">
+              <a class="button" href="https://eaglercraft.com/play?version=1.8.8-wasm" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 2.5v11L14 8z"/></svg>
+                Launch Eaglercraft
+              </a>
+              <span class="microcopy">Browser play · Opens in a new tab</span>
+            </div>
+            <div class="version-links" aria-label="Choose a game version">
+              <span>OR CHOOSE A VERSION</span>
+              <a href="https://eaglercraft.com/play?version=1.8.8-wasm" target="_blank" rel="noopener noreferrer">1.8.8</a>
+              <a href="https://eaglercraft.com/play?version=1.12.2-wasm" target="_blank" rel="noopener noreferrer">1.12.2</a>
+              <a href="https://eaglercraft.com/play?version=26.2" target="_blank" rel="noopener noreferrer">26.2</a>
+            </div>
+          </div>
+          <div class="hero-art" role="img" aria-label="Pixel art sunset over a blocky landscape">
+            <div class="sun"></div>
+            <div class="pixel-cloud cloud-one"></div>
+            <div class="pixel-cloud cloud-two"></div>
+            <div class="mountain mountain-back"></div>
+            <div class="mountain"></div>
+            <div class="tree"></div>
+            <div class="block block-grass"></div>
+            <div class="block block-stone"></div>
+            <div class="ground"></div>
+            <span class="art-label">Somewhere, a new world waits</span>
+          </div>
+        </section>
+
+        <section class="stats" aria-label="At a glance">
+          <div class="stat"><strong>Instant access</strong><span>Play from a modern web browser</span></div>
+          <div class="stat"><strong>Classic block-building</strong><span>Explore, create, and make it yours</span></div>
+          <div class="stat"><strong>Made for friends</strong><span>Join multiplayer worlds and servers</span></div>
+        </section>
+
+        <section class="details" id="about" aria-labelledby="about-title">
+          <div>
+            <p class="section-kicker">Open the door</p>
+            <h2 id="about-title">Your next adventure is one click away.</h2>
+            <p class="details-copy">Choose a version and open the official Eaglercraft browser player. The game launches in a new tab because its site does not allow other pages to embed it.</p>
+          </div>
+          <div class="feature-grid" id="features">
+            <article class="feature"><span class="feature-icon" aria-hidden="true">01</span><strong>Browser play</strong><span>Launch the game directly in a new browser tab.</span></article>
+            <article class="feature"><span class="feature-icon" aria-hidden="true">02</span><strong>Pick a version</strong><span>Choose from the official browser player's available versions.</span></article>
+            <article class="feature"><span class="feature-icon" aria-hidden="true">03</span><strong>Make it yours</strong><span>Build, explore, and find a world that feels like home.</span></article>
+            <article class="feature"><span class="feature-icon" aria-hidden="true">04</span><strong>Plays in a new tab</strong><span>Keep this launch page handy while you play.</span></article>
+          </div>
+        </section>
+
+        <footer>
+          <div class="footer-row">
+            <span>Blockside is an independent fan-made launch page and is not affiliated with Mojang or Microsoft.</span>
+            <a href="https://eaglercraft.com/play?version=1.8.8-wasm" target="_blank" rel="noopener noreferrer">Play Eaglercraft ↗</a>
+          </div>
+          <div>Eaglercraft is provided by its respective operators. This page does not host or redistribute game files.</div>
+        </footer>
+      </div>
+    </main>
+  </body>
+</html>
